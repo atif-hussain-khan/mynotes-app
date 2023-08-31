@@ -1,8 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as devtools show log;
-
 import 'package:mynotes/constants/routes.dart';
+import 'package:mynotes/views/utils/show_error_dialog.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -58,25 +57,36 @@ class _RegisterViewState extends State<RegisterView> {
               final password = _password.text;
 
               try {
-                final userCredential = await FirebaseAuth.instance
-                    .createUserWithEmailAndPassword(
-                        email: email, password: password);
-                devtools.log(userCredential.toString());
+                await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                  email: email,
+                  password: password,
+                );
+                await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+                Navigator.of(context).pushNamed(verifyEmailRoute);
               } on FirebaseAuthException catch (e) {
                 switch (e.code) {
                   case 'missing-email':
-                    devtools.log('please enter a email');
+                    await showErrorDialog(
+                        context, 'Please enter a email address');
                   case 'missing-password':
-                    devtools.log('please enter a password');
+                    await showErrorDialog(context, 'Please enter a password');
                   case 'invalid-email':
-                    devtools.log('please enter a valid email address');
+                    await showErrorDialog(
+                        context, 'Please enter a valid email address');
                   case 'weak-password':
-                    devtools.log('please enter a stronger password');
+                    await showErrorDialog(
+                        context, 'Please choose a stronger password');
                   case 'email-already-in-use':
-                    devtools.log('an account with this email already exists');
+                    await showErrorDialog(context,
+                        'An account associated with $email already exists');
                   default:
-                    devtools.log(e.code);
+                    await showErrorDialog(context, 'Error: ${e.code}');
                 }
+              } catch (e) {
+                await showErrorDialog(
+                  context,
+                  'Unknown Exception: ${e.toString()}',
+                );
               }
             },
             child: const Text('Register'),
