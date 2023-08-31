@@ -1,8 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as devtools show log;
-
 import 'package:mynotes/constants/routes.dart';
+import 'package:mynotes/views/utils/show_error_dialog.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -68,21 +67,42 @@ class _LoginViewState extends State<LoginView> {
               } on FirebaseAuthException catch (e) {
                 switch (e.code) {
                   case 'missing-email':
-                    devtools.log('please enter a email');
+                    await showErrorDialog(
+                      context,
+                      "Please enter a email address",
+                    );
+                    ;
                   case 'missing-password':
-                    devtools.log('please enter a password');
+                    await showErrorDialog(
+                      context,
+                      "Please enter a password",
+                    );
                   case 'invalid-email':
-                    devtools.log('The email address is invalid');
+                    await showErrorDialog(
+                      context,
+                      "Please enter a valid email address",
+                    );
                   case 'user-not-found':
-                    devtools.log('this user does not exist');
+                    await showErrorDialog(
+                      context,
+                      "An account for $email does not exist",
+                    );
                   case 'wrong-password':
-                    devtools.log('the password is incorrect');
+                    await showErrorDialog(
+                      context,
+                      "Your password is incorrect",
+                    );
                   default:
-                    devtools.log('some other firebase exception occured');
-                    devtools.log(e.code);
+                    await showErrorDialog(
+                      context,
+                      'Error: ${e.code}',
+                    );
                 }
               } catch (e) {
-                devtools.log('some unknown exception has occured');
+                await showErrorDialog(
+                  context,
+                  'Unknown Exception: ${e.toString()}',
+                );
               }
             },
             child: const Text('Login'),
