@@ -12,7 +12,7 @@ class DatabaseUser {
   final int id;
   final String email;
 
-  DatabaseUser({required this.id, required this.email});
+  const DatabaseUser({required this.id, required this.email});
 
   DatabaseUser.fromRow(Map<String, Object?> row)
       : id = row[idCol] as int,
@@ -74,6 +74,7 @@ class DatabaseService {
   }
 
   Future<DatabaseNote> createNote({required DatabaseUser owner}) async {
+    await _checkDatabaseIsOpen();
     final db = _getDatabase();
     final dbUser = await getUser(email: owner.email);
 
@@ -88,6 +89,7 @@ class DatabaseService {
   }
 
   Future<int> deleteNote({required int id, bool deleteAll = false}) async {
+    await _checkDatabaseIsOpen();
     final db = _getDatabase();
     final int numberOfDeletions;
     if (deleteAll) {
@@ -105,6 +107,7 @@ class DatabaseService {
   }
 
   Future<DatabaseNote> getNote({required int id}) async {
+    await _checkDatabaseIsOpen();
     final db = _getDatabase();
     final noteMap = await db.query(noteTable, limit: 1, where: '$idCol = ?', whereArgs: [id]);
     if (noteMap.isEmpty) throw NoteDoesNotExistException();
@@ -117,6 +120,7 @@ class DatabaseService {
   }
 
   Future<List<DatabaseNote>> getAllNotes() async {
+    await _checkDatabaseIsOpen();
     final db = _getDatabase();
     final notes = await db.query(noteTable);
     if (notes.isEmpty) throw NoteDoesNotExistException();
@@ -124,6 +128,7 @@ class DatabaseService {
   }
 
   Future<DatabaseNote> updateNote({required DatabaseNote note, required String text}) async {
+    await _checkDatabaseIsOpen();
     final db = _getDatabase;
     await getNote(id: note.id);
     final update = {
@@ -190,7 +195,16 @@ class DatabaseService {
     _db = null;
   }
 
+  Future<void> _checkDatabaseIsOpen() async {
+    try {
+      await open();
+    } on DatabaseIsOpenDatabaseException {
+          
+    }
+  }
+
   Future<void> deleteUser({required String email}) async {
+    await _checkDatabaseIsOpen();
     await _checkUserExists(email: email);
     final db = _getDatabase();
     final deletedAccount = await db.delete(
@@ -202,6 +216,7 @@ class DatabaseService {
   }
 
   Future<DatabaseUser> createUser({required String email}) async {
+    await _checkDatabaseIsOpen();
     await _checkUserDoesNotExist(email: email);
     final db = _getDatabase();
     final userRow = {emailCol: email.toLowerCase()};
@@ -210,6 +225,7 @@ class DatabaseService {
   }
 
   Future<DatabaseUser> getUser({required String email}) async {
+    await _checkDatabaseIsOpen();
     await _checkUserExists(email: email);
     final db = _getDatabase();
     final result = await db.query(userTable,
