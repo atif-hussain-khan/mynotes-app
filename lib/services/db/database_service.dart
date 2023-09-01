@@ -53,10 +53,14 @@ class DatabaseNote {
 
 class DatabaseService {
   Database? _db;
+
+  static final DatabaseService _shared = DatabaseService._sharedInstance();
+  DatabaseService._sharedInstance();
+  factory DatabaseService() => _shared;
   List<DatabaseNote> _notes = [];
 
   final _notesStreamController = StreamController<List<DatabaseNote>>.broadcast();
-
+  Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
   Future<DatabaseUser> getOrCreateUser({required String email }) async {
     try {
       return await getUser(email: email);
