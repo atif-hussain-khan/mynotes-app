@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:mynotes/services/db/db_exceptions.dart';
+import 'package:mynotes/services/db/database_exceptions.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart'
     show MissingPlatformDirectoryException, getApplicationDocumentsDirectory;
@@ -51,7 +51,7 @@ class DatabaseNote {
   int get hashCode => id.hashCode;
 }
 
-class NotesService {
+class DatabaseService {
   Database? _db;
 
   Future<DatabaseNote> createNote({required DatabaseUser owner}) async {
