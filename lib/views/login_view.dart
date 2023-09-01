@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/constants/routes.dart';
+import 'package:mynotes/services/auth/auth_exceptions.dart';
+import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/utils/show_error_dialog.dart';
 
 class LoginView extends StatefulWidget {
@@ -57,59 +57,49 @@ class _LoginViewState extends State<LoginView> {
               final email = _email.text;
               final password = _password.text;
               try {
-                await FirebaseAuth.instance.signInWithEmailAndPassword(
-                  email: email,
-                  password: password,
-                );
+                await AuthService.firebase()
+                    .logIn(email: email, password: password);
 
-                if (FirebaseAuth.instance.currentUser?.emailVerified ?? false) {
+                if (AuthService.firebase().currentUser?.isEmailVerified ??
+                    false) {
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     notesRoute,
                     (route) => false,
                   );
                 } else {
-                  await FirebaseAuth.instance.signOut();
+                  await AuthService.firebase().logOut();
                   Navigator.of(context).pushNamedAndRemoveUntil(
                       verifyEmailRoute, (route) => false);
                 }
-              } on FirebaseAuthException catch (e) {
-                switch (e.code) {
-                  case 'missing-email':
-                    await showErrorDialog(
-                      context,
-                      "Please enter a email address",
-                    );
-                    ;
-                  case 'missing-password':
-                    await showErrorDialog(
-                      context,
-                      "Please enter a password",
-                    );
-                  case 'invalid-email':
-                    await showErrorDialog(
-                      context,
-                      "Please enter a valid email address",
-                    );
-                  case 'user-not-found':
-                    await showErrorDialog(
-                      context,
-                      "An account for $email does not exist",
-                    );
-                  case 'wrong-password':
-                    await showErrorDialog(
-                      context,
-                      "Your password is incorrect",
-                    );
-                  default:
-                    await showErrorDialog(
-                      context,
-                      'Error: ${e.code}',
-                    );
-                }
-              } catch (e) {
+              } on MissingEmailAuthException {
                 await showErrorDialog(
                   context,
-                  'Unknown Exception: ${e.toString()}',
+                  "Please enter a email address",
+                );
+              } on MissingPasswordAuthException {
+                await showErrorDialog(
+                  context,
+                  "Please enter a password",
+                );
+              } on InvalidEmailAuthException {
+                await showErrorDialog(
+                  context,
+                  "Please enter a valid email address",
+                );
+              } on UserNotFoundAuthException {
+                await showErrorDialog(
+                  context,
+                  "An account for $email does not exist",
+                );
+              } on InvalidPasswordAuthException {
+                await showErrorDialog(
+                  context,
+                  "Your password is incorrect",
+                );
+              } on UnknownAuthException {
+                await showErrorDialog(
+                  context,
+                  'Authentication Error',
                 );
               }
             },

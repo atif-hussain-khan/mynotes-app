@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/constants/routes.dart';
+import 'package:mynotes/services/auth/auth_exceptions.dart';
+import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/utils/show_error_dialog.dart';
 
 class RegisterView extends StatefulWidget {
@@ -57,36 +58,25 @@ class _RegisterViewState extends State<RegisterView> {
               final password = _password.text;
 
               try {
-                await FirebaseAuth.instance.createUserWithEmailAndPassword(
-                  email: email,
-                  password: password,
-                );
-                await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+                await AuthService.firebase()
+                    .createUser(email: email, password: password);
+                await AuthService.firebase().sendEmailVerification();
                 Navigator.of(context).pushNamed(verifyEmailRoute);
-              } on FirebaseAuthException catch (e) {
-                switch (e.code) {
-                  case 'missing-email':
-                    await showErrorDialog(
-                        context, 'Please enter a email address');
-                  case 'missing-password':
-                    await showErrorDialog(context, 'Please enter a password');
-                  case 'invalid-email':
-                    await showErrorDialog(
-                        context, 'Please enter a valid email address');
-                  case 'weak-password':
-                    await showErrorDialog(
-                        context, 'Please choose a stronger password');
-                  case 'email-already-in-use':
-                    await showErrorDialog(context,
-                        'An account associated with $email already exists');
-                  default:
-                    await showErrorDialog(context, 'Error: ${e.code}');
-                }
-              } catch (e) {
+              } on MissingEmailAuthException {
+                await showErrorDialog(context, 'Please enter a email address');
+              } on MissingPasswordAuthException {
+                await showErrorDialog(context, 'Please enter a password');
+              } on InvalidEmailAuthException {
                 await showErrorDialog(
-                  context,
-                  'Unknown Exception: ${e.toString()}',
-                );
+                    context, 'Please enter a valid email address');
+              } on WeakPasswordAuthException {
+                await showErrorDialog(
+                    context, 'Please choose a stronger password');
+              } on AccountAlreadyExistsAuthException {
+                await showErrorDialog(context,
+                    'An account associated with $email already exists');
+              } on UnknownAuthException {
+                await showErrorDialog(context, 'Authentication Error');
               }
             },
             child: const Text('Register'),
