@@ -55,16 +55,21 @@ class DatabaseService {
   Database? _db;
 
   static final DatabaseService _shared = DatabaseService._sharedInstance();
-  DatabaseService._sharedInstance();
+  DatabaseService._sharedInstance() {
+    _notesStreamController =
+        StreamController<List<DatabaseNote>>.broadcast(onListen: () {
+      _notesStreamController.sink.add(_notes);
+    });
+  }
   factory DatabaseService() => _shared;
   List<DatabaseNote> _notes = [];
 
-  final _notesStreamController = StreamController<List<DatabaseNote>>.broadcast();
+  late final StreamController<List<DatabaseNote>> _notesStreamController;
   Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
-  Future<DatabaseUser> getOrCreateUser({required String email }) async {
+  Future<DatabaseUser> getOrCreateUser({required String email}) async {
     try {
       return await getUser(email: email);
-    } on UserDoesNotExistException{
+    } on UserDoesNotExistException {
       return await createUser(email: email);
     } catch (e) {
       rethrow;
@@ -102,7 +107,8 @@ class DatabaseService {
       _notes = [];
       _notesStreamController.add(_notes);
     } else {
-      numberOfDeletions = await db.delete(noteTable, where: '$idCol = ?', whereArgs: [id]);
+      numberOfDeletions =
+          await db.delete(noteTable, where: '$idCol = ?', whereArgs: [id]);
       if (numberOfDeletions != 1) throw CannotDeleteNoteException();
       _notes.removeWhere((note) => note.id == id);
       _notesStreamController.add(_notes);
@@ -113,7 +119,8 @@ class DatabaseService {
   Future<DatabaseNote> getNote({required int id}) async {
     await _checkDatabaseIsOpen();
     final db = _getDatabase();
-    final noteMap = await db.query(noteTable, limit: 1, where: '$idCol = ?', whereArgs: [id]);
+    final noteMap = await db
+        .query(noteTable, limit: 1, where: '$idCol = ?', whereArgs: [id]);
     if (noteMap.isEmpty) throw NoteDoesNotExistException();
     final note = DatabaseNote.fromRow(noteMap.first);
     // update local cache (ie. the note in cache might be out of date)
@@ -131,20 +138,19 @@ class DatabaseService {
     return notes.map((note) => DatabaseNote.fromRow(note)).toList();
   }
 
-  Future<DatabaseNote> updateNote({required DatabaseNote note, required String text}) async {
+  Future<DatabaseNote> updateNote(
+      {required DatabaseNote note, required String text}) async {
     await _checkDatabaseIsOpen();
     final db = _getDatabase;
     await getNote(id: note.id);
-    final update = {
-      textCol: text
-    };
+    final update = {textCol: text};
     final updateCount = await db.call().update(noteTable, update);
     if (updateCount == 0) throw CannotUpdateNoteDatabaseException();
     final updatedNote = await getNote(id: note.id);
     _notes.removeWhere((note) => note.id == updatedNote.id);
     _notes.add(updatedNote);
     _notesStreamController.add(_notes);
-    return updatedNote;  
+    return updatedNote;
   }
 
   Database _getDatabase() {
@@ -202,9 +208,7 @@ class DatabaseService {
   Future<void> _checkDatabaseIsOpen() async {
     try {
       await open();
-    } on DatabaseIsOpenDatabaseException {
-          
-    }
+    } on DatabaseIsOpenDatabaseException {}
   }
 
   Future<void> deleteUser({required String email}) async {
