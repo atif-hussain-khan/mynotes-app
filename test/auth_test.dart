@@ -91,7 +91,7 @@ class MockAuthProvider implements AuthProvider {
     if (email.isEmpty) throw MissingEmailAuthException();
     if (password.isEmpty) throw MissingPasswordAuthException();
     await Future.delayed(const Duration(seconds: 1));
-    _user = const AuthUser(email: 'bar@foo.com' ,isEmailVerified: false);
+    _user = const AuthUser(email: 'bar@foo.com' ,isEmailVerified: false, id: 'myid');
     return Future.value(_user);
   }
 
@@ -107,7 +107,7 @@ class MockAuthProvider implements AuthProvider {
   Future<void> sendEmailVerification() async {
     if (!isInitialized) throw ProviderNotInitializedException();
     if (_user == null) throw UserNotLoggedInAuthException();
-    _user = const AuthUser(email: 'bar@food.com', isEmailVerified: true);
+    _user = const AuthUser(email: 'bar@food.com', isEmailVerified: true, id: 'myid');
   }
 }
 
