@@ -21,13 +21,7 @@ class FirebaseDatabaseService {
           .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
           .get()
           .then(
-            (value) => value.docs.map((doc) {
-              return CloudNote(
-                documentId: doc.id,
-                ownerUserId: doc.data()[ownerUserIdFieldName],
-                text: doc.data()[textFieldName],
-              );
-            }).toList(),
+            (value) => value.docs.map((doc) => CloudNote.fromSnapshot(doc)).toList(),
           );
     } catch (e) {
       throw CannotGetAllNotes();
