@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mynotes/services/auth/auth_service.dart';
+import 'package:mynotes/utils/dialogs/cannot_share_empty_note_dialog.dart';
 import 'package:mynotes/utils/generics/get_arguments.dart';
 import 'package:mynotes/services/cloud/firbase_database_service.dart';
 import 'package:mynotes/services/cloud/cloud_note.dart';
+import 'package:share_plus/share_plus.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({super.key});
@@ -29,7 +31,8 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     if (note != null) return note;
 
     final currentUser = AuthService.firebase().currentUser!;
-    final newNote = await _databaseService.createNewNote(ownerUserId: currentUser.id);
+    final newNote =
+        await _databaseService.createNewNote(ownerUserId: currentUser.id);
     _note = newNote;
     return newNote;
   }
@@ -45,7 +48,8 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     final note = _note;
     final text = _textController.text;
     if (text.isNotEmpty && note != null) {
-      await _databaseService.updateNote(documentId: note.documentId, text: text);
+      await _databaseService.updateNote(
+          documentId: note.documentId, text: text);
     }
   }
 
@@ -80,8 +84,21 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-            title: const Text('New Note')),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: const Text('New Note'),
+          actions: [
+            IconButton(
+                onPressed: () async {
+                  final text = _textController.text;
+                  if (_note == null || text.isEmpty) {
+                    await cannotShareEmptyNoteDialog(context);
+                  } else {
+                    Share.share(text);
+                  }
+                },
+                icon: const Icon(Icons.share))
+          ],
+        ),
         body: FutureBuilder(
             future: createNewOrGetExistingNote(context),
             builder: (context, snapshot) {
