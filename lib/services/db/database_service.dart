@@ -53,7 +53,6 @@ class DatabaseNote {
 
 class DatabaseService {
   Database? _db;
-
   static final DatabaseService _shared = DatabaseService._sharedInstance();
   DatabaseService._sharedInstance() {
     _notesStreamController =
@@ -144,7 +143,9 @@ class DatabaseService {
     final db = _getDatabase;
     await getNote(id: note.id);
     final update = {textCol: text};
-    final updateCount = await db.call().update(noteTable, update);
+    final updateCount = await db
+        .call()
+        .update(noteTable, update, where: '$idCol = ?', whereArgs: [note.id]);
     if (updateCount == 0) throw CannotUpdateNoteDatabaseException();
     final updatedNote = await getNote(id: note.id);
     _notes.removeWhere((note) => note.id == updatedNote.id);

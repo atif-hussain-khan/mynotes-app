@@ -12,6 +12,8 @@ class UserDoesNotExistException implements Exception {}
 
 class UserIsNotOwnerNoteException implements Exception {}
 
+class UserShouldBeSetBeforeReadingAllNotesDatabaseException implements Exception {}
+
 class CannotDeleteNoteException implements Exception {}
 
 class CannotUpdateNoteDatabaseException implements Exception {}
