@@ -11,8 +11,10 @@ class FirebaseDatabaseService {
       FirebaseDatabaseService._sharedInstance();
   factory FirebaseDatabaseService() => _shared;
 
-  void createNewNote({required String ownerUserId}) async {
-    await notes.add({ownerUserIdFieldName: ownerUserId, textFieldName: ''});
+  Future<CloudNote> createNewNote({required String ownerUserId}) async {
+    final document = await notes.add({ownerUserIdFieldName: ownerUserId, textFieldName: ''});
+    final note = await document.get();
+    return CloudNote(documentId: note.id, ownerUserId: ownerUserId, text: '');
   }
 
   Future<List<CloudNote>> getNotes({required String ownerUserId}) async {
