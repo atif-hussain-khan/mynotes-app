@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:mynotes/extentions/list/filter.dart';
 import 'package:mynotes/services/db/database_exceptions.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart'
@@ -53,6 +54,8 @@ class DatabaseNote {
 
 class DatabaseService {
   Database? _db;
+  DatabaseUser? _user;
+
   static final DatabaseService _shared = DatabaseService._sharedInstance();
   DatabaseService._sharedInstance() {
     _notesStreamController =
@@ -64,12 +67,27 @@ class DatabaseService {
   List<DatabaseNote> _notes = [];
 
   late final StreamController<List<DatabaseNote>> _notesStreamController;
-  Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
-  Future<DatabaseUser> getOrCreateUser({required String email}) async {
+  Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream.filter((note) {
+    final currentUser = _user;
+    if (currentUser != null){
+      return note.userId == currentUser.id;
+    } else {
+      throw UserShouldBeSetBeforeReadingAllNotesDatabaseException();
+    }
+  });
+  Future<DatabaseUser> getOrCreateUser({required String email, bool setAsCurrentUser = true}) async {
     try {
-      return await getUser(email: email);
+      final user = await getUser(email: email);
+      if(setAsCurrentUser){
+        _user = user;
+      }
+      return user;
     } on UserDoesNotExistException {
-      return await createUser(email: email);
+      final createdUser = await createUser(email: email);
+      if(setAsCurrentUser){
+        _user = createdUser;
+      }
+      return createdUser;
     } catch (e) {
       rethrow;
     }
