@@ -4,6 +4,7 @@ import 'package:mynotes/constants/routes.dart';
 import 'package:mynotes/services/auth/auth_exceptions.dart';
 import 'package:mynotes/services/auth/bloc/auth_bloc.dart';
 import 'package:mynotes/services/auth/bloc/auth_event.dart';
+import 'package:mynotes/services/auth/bloc/auth_state.dart';
 import 'package:mynotes/utils/dialogs/show_error_dialog.dart';
 
 class LoginView extends StatefulWidget {
@@ -54,59 +55,46 @@ class _LoginViewState extends State<LoginView> {
             autocorrect: false,
             decoration: const InputDecoration(hintText: 'Enter your password'),
           ),
-          TextButton(
-            onPressed: () async {
-              final email = _email.text;
-              final password = _password.text;
-              try {
-                context.read<AuthBloc>().add(AuthEventLogIn(email, password));
-                // await AuthService.firebase()
-                //     .logIn(email: email, password: password);
-
-                // if (AuthService.firebase().currentUser?.isEmailVerified ??
-                //     false) {
-                //   Navigator.of(context).pushNamedAndRemoveUntil(
-                //     notesRoute,
-                //     (route) => false,
-                //   );
-                // } else {
-                //   await AuthService.firebase().logOut();
-                //   Navigator.of(context).pushNamedAndRemoveUntil(
-                //       verifyEmailRoute, (route) => false);
-                // }
-              } on MissingEmailAuthException {
-                await showErrorDialog(
-                  context,
-                  "Please enter a email address",
-                );
-              } on MissingPasswordAuthException {
-                await showErrorDialog(
-                  context,
-                  "Please enter a password",
-                );
-              } on InvalidEmailAuthException {
-                await showErrorDialog(
-                  context,
-                  "Please enter a valid email address",
-                );
-              } on UserNotFoundAuthException {
-                await showErrorDialog(
-                  context,
-                  "An account for $email does not exist",
-                );
-              } on InvalidPasswordAuthException {
-                await showErrorDialog(
-                  context,
-                  "Your password is incorrect",
-                );
-              } on UnknownAuthException {
-                await showErrorDialog(
-                  context,
-                  'Authentication Error',
-                );
+          BlocListener<AuthBloc, AuthState>(
+            listener: (context, state) async {
+              if (state is AuthStateLoggedOut) {
+                if (state.exception is MissingEmailAuthException) {
+                  await showErrorDialog(
+                    context,
+                    "Enter your email address",
+                  );
+                } else if (state.exception is MissingPasswordAuthException) {
+                  await showErrorDialog(
+                    context,
+                    "Eenter your password",
+                  );
+                } else if (state.exception is InvalidEmailAuthException) {
+                  await showErrorDialog(
+                    context,
+                    "Enter a valid email",
+                  );
+                } else if (state.exception is UserNotFoundAuthException ||
+                    state.exception is InvalidPasswordAuthException) {
+                  await showErrorDialog(
+                    context,
+                    "Account does not exist",
+                  );
+                } else if (state.exception is UnknownAuthException) {
+                  await showErrorDialog(
+                    context,
+                    'Authentication Error',
+                  );
+                }
               }
             },
-            child: const Text('Login'),
+            child: TextButton(
+              onPressed: () async {
+                final email = _email.text;
+                final password = _password.text;
+                context.read<AuthBloc>().add(AuthEventLogIn(email, password));
+              },
+              child: const Text('Login'),
+            ),
           ),
           TextButton(
               onPressed: () {

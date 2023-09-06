@@ -1,4 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mynotes/services/auth/auth_exceptions.dart';
 import 'package:mynotes/services/auth/auth_provider.dart';
 import 'package:mynotes/services/auth/bloc/auth_event.dart';
 import 'package:mynotes/services/auth/bloc/auth_state.dart';
@@ -10,7 +12,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await provider.initialize();
         final user = provider.currentUser;
         if (user == null) {
-          emit(const AuthStateLoggedOut());
+          emit(const AuthStateLoggedOut(null));
         } else if (!user.isEmailVerified) {
           emit(const AuthStateNeedsEmailVerification());
         } else {
@@ -21,7 +23,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthEventLogIn>(
       (event, emit) async {
-        emit(AuthStateLoading());
         final email = event.email;
         final password = event.password;
 
@@ -32,7 +33,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           );
           emit(AuthStateLoggedIn(user));
         } on Exception catch (e) {
-          emit(AuthStateLoginFailure(e));
+          emit(AuthStateLoggedOut(e));
         }
       },
     );
@@ -42,7 +43,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthStateLoading());
         try {
           await provider.logOut();
-          emit(const AuthStateLoggedOut());
+          emit(const AuthStateLoggedOut(null));
         } on Exception catch (e) {
           emit(AuthStateLogoutFailure(e));
         }
