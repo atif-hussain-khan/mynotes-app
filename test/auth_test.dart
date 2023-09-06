@@ -109,6 +109,12 @@ class MockAuthProvider implements AuthProvider {
     if (_user == null) throw UserNotLoggedInAuthException();
     _user = const AuthUser(email: 'bar@food.com', isEmailVerified: true, id: 'myid');
   }
+  
+  @override
+  Future<void> sendPasswordResetEmail({required String email}) {
+    // TODO: implement sendPasswordResetEmail
+    throw UnimplementedError();
+  }
 }
 
 class ProviderNotInitializedException implements Exception {}

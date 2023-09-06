@@ -6,6 +6,7 @@ import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/services/auth/bloc/auth_bloc.dart';
 import 'package:mynotes/services/auth/bloc/auth_event.dart';
 import 'package:mynotes/services/auth/bloc/auth_state.dart';
+import 'package:mynotes/views/forgot_password_view.dart';
 import 'package:mynotes/views/login_view.dart';
 import 'package:mynotes/views/notes/create_update_note_view.dart';
 import 'package:mynotes/views/notes/notes_view.dart';
@@ -62,6 +63,8 @@ class HomePage extends StatelessWidget {
             return const VerifyEmailView();
           case AuthStateLoggedOut():
             return const LoginView();
+          case AuthStateForgotPassword():
+            return const ForgotPasswordView();
           case AuthStateRegistering():
             return const RegisterView();
           default:
