@@ -27,10 +27,10 @@ void main() {
         child: const HomePage(),
       ),
       routes: {
-        loginRoute: (context) => const LoginView(),
-        registerRoute: (context) => const RegisterView(),
-        verifyEmailRoute: (context) => const VerifyEmailView(),
-        notesRoute: (context) => const NotesView(),
+        // loginRoute: (context) => const LoginView(),
+        // registerRoute: (context) => const RegisterView(),
+        // verifyEmailRoute: (context) => const VerifyEmailView(),
+        // notesRoute: (context) => const NotesView(),
         createUpdateNoteRoute: (context) => const CreateUpdateNoteView()
       },
     ),
@@ -43,40 +43,23 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.read<AuthBloc>().add(const AuthEventInitialize());
-    return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
-      switch (state) {
-        case AuthStateLoggedIn():
-          return const NotesView(); 
-        case AuthStateNeedsEmailVerification():
-          return const VerifyEmailView();
-        case AuthStateLoggedOut():
-          return const LoginView();
-        default:
-          return const Scaffold(
-            body: CircularProgressIndicator(),
-          );
-      }
-    },);
-    // return FutureBuilder(
-    //   future: AuthService.firebase().initialize(),
-    //   builder: (context, snapshot) {
-    //     switch (snapshot.connectionState) {
-    //       case ConnectionState.done:
-    //         final user = AuthService.firebase().currentUser;
-    //         if (user != null) {
-    //           if (user.isEmailVerified) {
-    //             devtools.log('Email is verified');
-    //             return const NotesView();
-    //           } else {
-    //             return const VerifyEmailView();
-    //           }
-    //         } else {
-    //           return const LoginView();
-    //         }
-    //       default:
-    //         return const CircularProgressIndicator();
-    //     }
-    //   },
-    // );
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        switch (state) {
+          case AuthStateLoggedIn():
+            return const NotesView();
+          case AuthStateNeedsEmailVerification():
+            return const VerifyEmailView();
+          case AuthStateLoggedOut():
+            return const LoginView();
+          case AuthStateRegistering():
+            return const RegisterView();
+          default:
+            return const Scaffold(
+              body: CircularProgressIndicator(),
+            );
+        }
+      },
+    );
   }
 }
